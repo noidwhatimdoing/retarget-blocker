@@ -14,23 +14,32 @@ export default function App() {
   const { shop, installed } = useLoaderData<typeof loader>();
   const [currentPage, setCurrentPage] = useState('home');
   const [integrations, setIntegrations] = useState({
-    meta: { connected: true, suppressionDays: 90 },
-    google: { connected: false, suppressionDays: 90 },
-    tiktok: { connected: false, suppressionDays: 90 }
-  });
+  suppressionDays: 90,
+  meta: { connected: false },
+  google: { connected: false },
+  tiktok: { connected: false }
+});
 
-  const StatCard = ({ title, value, change, icon, color }) => (
-    <div className="bg-white rounded-lg shadow-md p-6 border-l-4" style={{ borderLeftColor: color }}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          <p className="text-sm text-green-600">{change}</p>
-        </div>
-        <div className="text-3xl">{icon}</div>
+interface StatCardProps {
+  title: string;
+  value: string;
+  change: string;
+  icon: string;
+  color: string;
+}
+
+  const StatCard = ({ title, value, change, icon, color }: StatCardProps) => (
+  <div className="bg-white rounded-lg shadow-md p-6 border-l-4" style={{ borderLeftColor: color }}>
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-sm font-medium text-gray-600">{title}</p>
+        <p className="text-2xl font-bold text-gray-900">{value}</p>
+        <p className="text-sm text-green-600">{change}</p>
       </div>
+      <div className="text-3xl">{icon}</div>
     </div>
-  );
+  </div>
+);
 
  const HomePage = () => (
     <div className="space-y-6">
@@ -144,167 +153,284 @@ export default function App() {
     </div>
   );
 
-  const IntegrationsPage = () => (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Platform Integrations</h1>
+const IntegrationsPage = () => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Platform Integrations</h1>
+        <p className="text-gray-600 mt-2">Connect your ad platforms to automatically suppress customers who already purchased</p>
+      </div>
+    </div>
+
+    {/* Suppression Settings */}
+    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">Suppression Settings</h2>
+      <p className="text-sm text-gray-600 mb-4">
+        How long should customers be excluded from ads after making a purchase?
+      </p>
       
-      <div className="grid gap-6">
-        {/* Meta Integration */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="text-3xl">📘</div>
-              <div>
-                <h3 className="text-lg font-semibold">Meta (Facebook & Instagram)</h3>
-                <p className="text-sm text-gray-600">Sync customer data with Meta Ads Manager</p>
-              </div>
+      <div className="flex gap-3 mb-4">
+        {[30, 60, 90, 120].map((days) => (
+          <button
+            key={days}
+            onClick={() => setIntegrations(prev => ({ ...prev, suppressionDays: days }))}
+            className={`px-4 py-2 rounded-lg border font-medium transition-colors ${
+              integrations.suppressionDays === days 
+                ? 'bg-purple-600 text-white border-purple-600' 
+                : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+            }`}
+          >
+            {days} days
+            {days === 90 && (
+              <span className="ml-2 text-xs px-2 py-1 bg-white text-purple-600 rounded">
+                Recommended
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      
+      <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+        Save Settings
+      </button>
+    </div>
+
+    {/* Platform Integrations */}
+    <div className="grid gap-6">
+      {/* Meta Integration */}
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-4">
+            {/* Meta Logo */}
+            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
             </div>
-            <span className="text-2xl">
-              {integrations.meta.connected ? "✅" : "❌"}
-            </span>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Meta Business</h3>
+              <p className="text-sm text-gray-600">Facebook & Instagram Ads</p>
+            </div>
           </div>
           
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Suppression Duration
-              </label>
-              <select 
-                className="border border-gray-300 rounded-md px-3 py-2 w-32"
-                value={integrations.meta.suppressionDays}
-                onChange={(e) => setIntegrations(prev => ({
-                  ...prev,
-                  meta: { ...prev.meta, suppressionDays: parseInt(e.target.value) }
-                }))}
-              >
-                <option value={30}>30 days</option>
-                <option value={60}>60 days</option>
-                <option value={90}>90 days (Recommended)</option>
-                <option value={120}>120 days</option>
-              </select>
+          {integrations.meta.connected ? (
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                Active
+              </span>
             </div>
-            
-            <button 
-              className={`px-4 py-2 rounded-md ${
-                integrations.meta.connected 
-                  ? 'bg-red-600 hover:bg-red-700 text-white' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-              onClick={() => setIntegrations(prev => ({
-                ...prev,
-                meta: { ...prev.meta, connected: !prev.meta.connected }
-              }))}
-            >
-              {integrations.meta.connected ? 'Disconnect' : 'Connect Meta'}
-            </button>
-          </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm font-medium rounded-full">
+                Not Connected
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Google Integration */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="text-3xl">🔍</div>
-              <div>
-                <h3 className="text-lg font-semibold">Google Ads</h3>
-                <p className="text-sm text-gray-600">Sync with Google Ads Customer Match</p>
-              </div>
-            </div>
-            <span className="text-2xl">
-              {integrations.google.connected ? "✅" : "❌"}
-            </span>
+        {integrations.meta.connected && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Connected Account:</strong> Ad Account ID 123456789
+            </p>
+            <p className="text-sm text-blue-800 mt-1">
+              <strong>Suppression Audience:</strong> 
+              <a href="#" className="underline hover:text-blue-900 ml-1">
+                Shopify Customers - Suppressed (2,347 customers)
+              </a>
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div>
+            <h4 className="text-sm font-medium text-gray-900 mb-2">What this enables:</h4>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• Automatic customer suppression after purchase</li>
+              <li>• Custom audience sync to Meta Ads Manager</li>
+              <li>• Prevents wasted ad spend on existing customers</li>
+              <li>• Real-time updates when new orders come in</li>
+            </ul>
           </div>
           
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Suppression Duration
-              </label>
-              <select 
-                className="border border-gray-300 rounded-md px-3 py-2 w-32"
-                value={integrations.google.suppressionDays}
-                onChange={(e) => setIntegrations(prev => ({
-                  ...prev,
-                  google: { ...prev.google, suppressionDays: parseInt(e.target.value) }
-                }))}
-              >
-                <option value={30}>30 days</option>
-                <option value={60}>60 days</option>
-                <option value={90}>90 days (Recommended)</option>
-                <option value={120}>120 days</option>
-              </select>
+          <button
+            onClick={() => setIntegrations(prev => ({
+              ...prev,
+              meta: { ...prev.meta, connected: !prev.meta.connected }
+            }))}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+              integrations.meta.connected
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
+          >
+            {integrations.meta.connected ? 'Disconnect Meta' : 'Connect Meta Business'}
+          </button>
+        </div>
+      </div>
+
+      {/* Google Ads Integration */}
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-4">
+            {/* Google Ads Logo */}
+            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/>
+              </svg>
             </div>
-            
-            <button 
-              className={`px-4 py-2 rounded-md ${
-                integrations.google.connected 
-                  ? 'bg-red-600 hover:bg-red-700 text-white' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-              onClick={() => setIntegrations(prev => ({
-                ...prev,
-                google: { ...prev.google, connected: !prev.google.connected }
-              }))}
-            >
-              {integrations.google.connected ? 'Disconnect' : 'Connect Google Ads'}
-            </button>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Google Ads</h3>
+              <p className="text-sm text-gray-600">Search & Display Campaigns</p>
+            </div>
           </div>
+          
+          {integrations.google.connected ? (
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                Active
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm font-medium rounded-full">
+                Not Connected
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* TikTok Integration */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="text-3xl">🎵</div>
-              <div>
-                <h3 className="text-lg font-semibold">TikTok Ads</h3>
-                <p className="text-sm text-gray-600">Sync with TikTok Ads Manager</p>
-              </div>
-            </div>
-            <span className="text-2xl">
-              {integrations.tiktok.connected ? "✅" : "❌"}
-            </span>
+        {integrations.google.connected && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Connected Account:</strong> Customer ID 987-654-3210
+            </p>
+            <p className="text-sm text-blue-800 mt-1">
+              <strong>Customer Match List:</strong> 
+              <a href="#" className="underline hover:text-blue-900 ml-1">
+                Shopify Purchasers - Exclude (1,892 customers)
+              </a>
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div>
+            <h4 className="text-sm font-medium text-gray-900 mb-2">What this enables:</h4>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• Enhanced conversions tracking</li>
+              <li>• Customer Match list for exclusions</li>
+              <li>• Search and display campaign optimization</li>
+              <li>• Automated audience updates</li>
+            </ul>
           </div>
           
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Suppression Duration
-              </label>
-              <select 
-                className="border border-gray-300 rounded-md px-3 py-2 w-32"
-                value={integrations.tiktok.suppressionDays}
-                onChange={(e) => setIntegrations(prev => ({
-                  ...prev,
-                  tiktok: { ...prev.tiktok, suppressionDays: parseInt(e.target.value) }
-                }))}
-              >
-                <option value={30}>30 days</option>
-                <option value={60}>60 days</option>
-                <option value={90}>90 days (Recommended)</option>
-                <option value={120}>120 days</option>
-              </select>
+          <button
+            onClick={() => setIntegrations(prev => ({
+              ...prev,
+              google: { ...prev.google, connected: !prev.google.connected }
+            }))}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+              integrations.google.connected
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+            }`}
+          >
+            {integrations.google.connected ? 'Disconnect Google Ads' : 'Connect Google Ads'}
+          </button>
+        </div>
+      </div>
+
+      {/* TikTok Integration */}
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-4">
+            {/* TikTok Logo */}
+            <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
+              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+              </svg>
             </div>
-            
-            <button 
-              className={`px-4 py-2 rounded-md ${
-                integrations.tiktok.connected 
-                  ? 'bg-red-600 hover:bg-red-700 text-white' 
-                  : 'bg-black hover:bg-gray-800 text-white'
-              }`}
-              onClick={() => setIntegrations(prev => ({
-                ...prev,
-                tiktok: { ...prev.tiktok, connected: !prev.tiktok.connected }
-              }))}
-            >
-              {integrations.tiktok.connected ? 'Disconnect' : 'Connect TikTok'}
-            </button>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">TikTok for Business</h3>
+              <p className="text-sm text-gray-600">TikTok Ads Manager</p>
+            </div>
           </div>
+          
+          {integrations.tiktok.connected ? (
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                Active
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm font-medium rounded-full">
+                Not Connected
+              </span>
+            </div>
+          )}
+        </div>
+
+        {integrations.tiktok.connected && (
+          <div className="mb-4 p-3 bg-pink-50 rounded-lg">
+            <p className="text-sm text-pink-800">
+              <strong>Connected Account:</strong> Advertiser ID 456789123
+            </p>
+            <p className="text-sm text-pink-800 mt-1">
+              <strong>Custom Audience:</strong> 
+              <a href="#" className="underline hover:text-pink-900 ml-1">
+                Shopify Buyers - Suppress (892 customers)
+              </a>
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div>
+            <h4 className="text-sm font-medium text-gray-900 mb-2">What this enables:</h4>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• Custom audience creation and sync</li>
+              <li>• Video ad campaign optimization</li>
+              <li>• Audience exclusion for existing customers</li>
+              <li>• Performance tracking and ROI measurement</li>
+            </ul>
+          </div>
+          
+          <button
+            onClick={() => setIntegrations(prev => ({
+              ...prev,
+              tiktok: { ...prev.tiktok, connected: !prev.tiktok.connected }
+            }))}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+              integrations.tiktok.connected
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-black text-white hover:bg-gray-800'
+            }`}
+          >
+            {integrations.tiktok.connected ? 'Disconnect TikTok' : 'Connect TikTok for Business'}
+          </button>
         </div>
       </div>
     </div>
-  );
 
+    {/* Help Section */}
+    <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+      <h3 className="text-lg font-semibold text-gray-900 mb-3">Need Help?</h3>
+      <p className="text-gray-600 mb-4">
+        Our step-by-step guides make it easy to connect each platform safely and securely.
+      </p>
+      <div className="flex gap-4">
+        <button className="text-purple-600 hover:text-purple-700 font-medium">
+          📖 View Setup Guides
+        </button>
+        <button className="text-purple-600 hover:text-purple-700 font-medium">
+          💬 Contact Support
+        </button>
+      </div>
+    </div>
+  </div>
+);
   const AnalyticsPage = () => (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-900">Analytics & Reports</h1>
