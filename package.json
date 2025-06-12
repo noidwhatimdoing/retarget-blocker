@@ -11,15 +11,23 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@prisma/client": "^6.9.0",
     "@remix-run/node": "^2.16.8",
     "@remix-run/react": "^2.16.8",
     "@remix-run/serve": "^2.16.8",
+    "@shopify/app-bridge-react": "^4.1.10",
+    "@shopify/polaris": "^13.9.5",
+    "@shopify/shopify-app-remix": "^3.8.3",
+    "@shopify/shopify-app-session-storage-prisma": "^6.0.7",
+    "axios": "^1.9.0",
     "isbot": "^4.1.0",
+    "prisma": "^6.9.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.16.8",
+    "@types/node": "^22.15.30",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
@@ -33,7 +41,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
-    "typescript": "^5.1.6",
+    "typescript": "^5.8.3",
     "vite": "^6.0.0",
     "vite-tsconfig-paths": "^4.2.1"
   },

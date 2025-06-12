@@ -1,0 +1,38 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+name = "retarget-blocker"
+client_id = "your_client_id_here"
+application_url = "http://localhost:3000"
+embedded = true
+
+[access_scopes]
+# https://shopify.dev/docs/api/usage/access-scopes
+scopes = "read_orders,read_customers,write_customers,read_analytics"
+
+[auth]
+redirect_urls = [
+  "http://localhost:3000/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-01"
+
+[[webhooks.subscriptions]]
+topics = ["orders/paid"]
+uri = "http://localhost:3000/webhooks/orders/paid"
+
+[[webhooks.subscriptions]]
+topics = ["orders/updated"]  
+uri = "http://localhost:3000/webhooks/orders/updated"
+
+[[webhooks.subscriptions]]
+topics = ["customers/data_request"]
+uri = "http://localhost:3000/webhooks/customers/data_request"
+
+[[webhooks.subscriptions]]
+topics = ["customers/redact"]
+uri = "http://localhost:3000/webhooks/customers/redact"
+
+[[webhooks.subscriptions]]
+topics = ["shop/redact"]
+uri = "http://localhost:3000/webhooks/shop/redact"

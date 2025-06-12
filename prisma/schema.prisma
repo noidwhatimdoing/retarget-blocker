@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id          String    @id
+  shop        String
+  state       String
+  isOnline    Boolean   @default(false)
+  scope       String?
+  expires     DateTime?
+  accessToken String
+  userId      BigInt?
+  firstName   String?
+  lastName    String?
+  email       String?
+  accountOwner Boolean   @default(false)
+  locale      String?
+  collaborator Boolean?  @default(false)
+  emailVerified Boolean? @default(false)
+
+  @@map("sessions")
+}
+
+model Shop {
+  id                String   @id @default(cuid())
+  shopDomain        String   @unique
+  accessToken       String
+  isActive          Boolean  @default(true)
+  plan              String   @default("starter")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  metaAccessToken   String?
+  metaAdAccountId   String?
+  googleAccessToken String?
+  googleCustomerId  String?
+  tiktokAccessToken String?
+  tiktokAdvertiserId String?
+  
+  suppressionWindow Int      @default(7)
+  autoSuppress      Boolean  @default(true)
+  
+  customers         Customer[]
+  orders           Order[]
+  suppressionLists SuppressionList[]
+  campaigns        Campaign[]
+  
+  @@map("shops")
+}
+
+model Customer {
+  id              String   @id @default(cuid())
+  shopId          String
+  shopifyId       String
+  email           String
+  phone           String?
+  firstName       String?
+  lastName        String?
+  totalSpent      Float    @default(0)
+  ordersCount     Int      @default(0)
+  lastOrderDate   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  orders          Order[]
+  suppressionEntries SuppressionEntry[]
+  
+  @@unique([shopId, shopifyId])
+  @@unique([shopId, email])
+  @@map("customers")
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  shopId          String
+  customerId      String
+  shopifyOrderId  String
+  orderNumber     String
+  totalPrice      Float
+  currency        String
+  orderDate       DateTime
+  fulfillmentStatus String?
+  financialStatus String
+  createdAt       DateTime @default(now())
+  
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  @@unique([shopId, shopifyOrderId])
+  @@map("orders")
+}
+
+model SuppressionList {
+  id          String   @id @default(cuid())
+  shopId      String
+  platform    String
+  audienceId  String
+  audienceName String
+  isActive    Boolean  @default(true)
+  lastSyncAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  entries     SuppressionEntry[]
+  
+  @@unique([shopId, platform, audienceId])
+  @@map("suppression_lists")
+}
+
+model SuppressionEntry {
+  id               String   @id @default(cuid())
+  customerId       String
+  suppressionListId String
+  addedAt          DateTime @default(now())
+  expiresAt        DateTime?
+  isActive         Boolean  @default(true)
+  
+  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  suppressionList  SuppressionList @relation(fields: [suppressionListId], references: [id], onDelete: Cascade)
+  
+  @@unique([customerId, suppressionListId])
+  @@map("suppression_entries")
+}
+
+model Campaign {
+  id              String   @id @default(cuid())
+  shopId          String
+  platform        String
+  campaignId      String
+  campaignName    String
+  isMonitored     Boolean  @default(true)
+  wastedSpend     Float    @default(0)
+  savedSpend      Float    @default(0)
+  lastAnalyzedAt  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  
+  @@unique([shopId, platform, campaignId])
+  @@map("campaigns")
+}
+
