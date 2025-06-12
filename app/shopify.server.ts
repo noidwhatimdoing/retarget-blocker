@@ -4,9 +4,8 @@ import {
   AppDistribution,
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
-import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
+import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memory";
 import { restResources } from "@shopify/shopify-api/rest/admin/2023-10";
-import { prisma } from "./db.server";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY!,
@@ -15,11 +14,11 @@ const shopify = shopifyApp({
   scopes: [],
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
-  sessionStorage: new PrismaSessionStorage(prisma),
+  sessionStorage: new MemorySessionStorage(), // Use memory instead of Prisma
   distribution: AppDistribution.AppStore,
   restResources,
   useOnlineTokens: false,
-  isEmbeddedApp: true, // Enable embedded app
+  isEmbeddedApp: true,
 });
 
 export default shopify;
