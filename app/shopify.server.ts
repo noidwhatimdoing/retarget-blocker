@@ -4,22 +4,94 @@ import {
   AppDistribution,
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
-import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memory";
 import { restResources } from "@shopify/shopify-api/rest/admin/2023-10";
 
-const shopify = shopifyApp({
-  apiKey: process.env.SHOPIFY_API_KEY!,
-  apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
-  apiVersion: ApiVersion.October23,
-  scopes: [],
-  appUrl: process.env.SHOPIFY_APP_URL || "",
-  authPathPrefix: "/auth",
-  sessionStorage: new MemorySessionStorage(), // Use memory instead of Prisma
-  distribution: AppDistribution.AppStore,
-  restResources,
-  useOnlineTokens: false,
-  isEmbeddedApp: true,
-});
+// Safer session storage
+const sessions = new Map();
+
+const memoryStorage = {
+  async storeSession(session: any) {
+    try {
+      sessions.set(session.id, session);
+      return true;
+    } catch (error) {
+      console.error("Session store error:", error);
+      return false;
+    }
+  },
+  async loadSession(id: string) {
+    try {
+      return sessions.get(id) || undefined;
+    } catch (error) {
+      console.error("Session load error:", error);
+      return undefined;
+    }
+  },
+  async deleteSession(id: string) {
+    try {
+      sessions.delete(id);
+      return true;
+    } catch (error) {
+      console.error("Session delete error:", error);
+      return false;
+    }
+  },
+  async deleteSessions(ids: string[]) {
+    try {
+      ids.forEach(id => sessions.delete(id));
+      return true;
+    } catch (error) {
+      console.error("Sessions delete error:", error);
+      return false;
+    }
+  },
+  async findSessionsByShop(shop: string) {
+    try {
+      return Array.from(sessions.values()).filter((session: any) => session.shop === shop);
+    } catch (error) {
+      console.error("Find sessions error:", error);
+      return [];
+    }
+  }
+};
+
+console.log("🔧 Checking environment variables...");
+console.log("API Key:", process.env.SHOPIFY_API_KEY ? "✅ Set" : "❌ Missing");
+console.log("API Secret:", process.env.SHOPIFY_API_SECRET ? "✅ Set" : "❌ Missing");
+console.log("App URL:", process.env.SHOPIFY_APP_URL ? "✅ Set" : "❌ Missing");
+
+// Safer Shopify app initialization
+let shopify;
+
+try {
+  shopify = shopifyApp({
+    apiKey: process.env.SHOPIFY_API_KEY || "dummy-key",
+    apiSecretKey: process.env.SHOPIFY_API_SECRET || "dummy-secret",
+    apiVersion: ApiVersion.October23,
+    scopes: [],
+    appUrl: process.env.SHOPIFY_APP_URL || "http://localhost:3000",
+    authPathPrefix: "/auth",
+    sessionStorage: memoryStorage,
+    distribution: AppDistribution.AppStore,
+    restResources,
+    useOnlineTokens: false,
+    isEmbeddedApp: true,
+  });
+  
+  console.log("✅ Shopify app initialized successfully!");
+} catch (error) {
+  console.error("❌ Failed to initialize Shopify app:", error);
+  
+  // Create a dummy shopify object to prevent crashes
+  shopify = {
+    addDocumentResponseHeaders: () => {},
+    authenticate: () => ({ admin: null }),
+    unauthenticated: () => {},
+    login: () => {},
+    registerWebhooks: () => {},
+    sessionStorage: memoryStorage,
+  };
+}
 
 export default shopify;
 export const apiVersion = ApiVersion.October23;

@@ -32,24 +32,27 @@ export default function App() {
     </div>
   );
 
-  const HomePage = () => (
+ const HomePage = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-        <div className="text-sm text-gray-500">
-          Connected to: <span className="font-semibold">{shop}</span>
-        </div>
+        <span className="text-sm text-gray-600">Connected to: {shop}</span>
       </div>
-      
-      {installed && (
-        <div style={{ 
-          background: '#d1fae5', 
-          border: '1px solid #10b981', 
-          padding: '16px', 
+
+      {/* Success Message */}
+      {shop && (
+        <div style={{
+          backgroundColor: '#d1fae5',
+          border: '1px solid #10b981',
           borderRadius: '8px',
-          marginBottom: '24px'
+          padding: '16px'
         }}>
-          <h2 style={{ color: '#065f46', margin: '0 0 8px 0' }}>
+          <h2 style={{
+            fontSize: '16px',
+            fontWeight: '600',
+            color: '#065f46',
+            marginBottom: '4px'
+          }}>
             🎉 Installation Successful!
           </h2>
           <p style={{ color: '#047857', margin: 0 }}>
@@ -58,6 +61,7 @@ export default function App() {
         </div>
       )}
       
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Customers Suppressed"
@@ -89,40 +93,51 @@ export default function App() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <span className="text-green-500">✅</span>
-              <span className="text-sm">247 customers added to Meta suppression list</span>
-              <span className="text-xs text-gray-500">2 hours ago</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <span className="text-green-500">✅</span>
-              <span className="text-sm">Google Ads audience updated with 89 new customers</span>
-              <span className="text-xs text-gray-500">4 hours ago</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <span className="text-blue-500">🎯</span>
-              <span className="text-sm">Campaign "Summer Sale 2025" optimized</span>
-              <span className="text-xs text-gray-500">6 hours ago</span>
+      {/* Recent Activity - Full Width */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <span className="text-green-500">✅</span>
+            <div className="flex-1">
+              <span className="text-sm font-medium">247 customers added to Meta suppression list</span>
+              <div className="text-xs text-gray-500">2 hours ago</div>
             </div>
           </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <button className="w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors">
-              Sync All Platforms
-            </button>
-            <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors">
-              View Campaign Performance
-            </button>
-            <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors">
-              Download Reports
-            </button>
+          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <span className="text-green-500">✅</span>
+            <div className="flex-1">
+              <span className="text-sm font-medium">Google Ads audience updated with 89 new customers</span>
+              <div className="text-xs text-gray-500">4 hours ago</div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <span className="text-blue-500">🎯</span>
+            <div className="flex-1">
+              <span className="text-sm font-medium">Campaign "Summer Sale 2025" optimized</span>
+              <div className="text-xs text-gray-500">6 hours ago</div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <span className="text-yellow-500">⚠️</span>
+            <div className="flex-1">
+              <span className="text-sm font-medium">TikTok sync pending review</span>
+              <div className="text-xs text-gray-500">8 hours ago</div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <span className="text-purple-500">📈</span>
+            <div className="flex-1">
+              <span className="text-sm font-medium">Weekly report generated</span>
+              <div className="text-xs text-gray-500">1 day ago</div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <span className="text-red-500">🚨</span>
+            <div className="flex-1">
+              <span className="text-sm font-medium">High-value customer detected</span>
+              <div className="text-xs text-gray-500">1 day ago</div>
+            </div>
           </div>
         </div>
       </div>
