@@ -2,7 +2,6 @@ import { json, LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { useLoaderData, Form } from "@remix-run/react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  // Remove authentication temporarily - use mock data
   const integrations = {
     meta: {
       connected: false,
@@ -28,14 +27,10 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const action = formData.get("_action");
 
-  // Handle individual platform suppression updates
   if (action?.toString().includes("-suppression")) {
     const platform = action.toString().split("-")[0];
     const days = parseInt(formData.get(`${platform}-suppression`) as string);
     console.log(`${platform} suppression window updated to:`, days);
-    
-    // Here you'd update your database/storage
-    // await updatePlatformSuppression(platform, days);
   }
 
   return json({ success: true });
@@ -56,7 +51,7 @@ export default function Integrations() {
     },
     {
       id: "google" as const,
-      name: "Google Ads",
+      name: "Google Ads", 
       description: "Connect your Google Ads account for enhanced conversions",
       icon: "🔍",
       color: "#4285f4",
@@ -66,7 +61,7 @@ export default function Integrations() {
     {
       id: "tiktok" as const,
       name: "TikTok Ads",
-      description: "Connect your TikTok for Business account",
+      description: "Connect your TikTok for Business account", 
       icon: "🎵",
       color: "#ff0050",
       connected: integrations.tiktok.connected,
@@ -76,7 +71,7 @@ export default function Integrations() {
 
   return (
     <div style={{ maxWidth: "1200px" }}>
-      {/* Page Header */}
+      {/* Page Header ONLY - NO GLOBAL SUPPRESSION SECTION */}
       <div style={{ marginBottom: "32px" }}>
         <h1 style={{ 
           fontSize: "28px", 
@@ -95,14 +90,13 @@ export default function Integrations() {
         </p>
       </div>
 
-      {/* Platforms Grid */}
+      {/* Platforms Grid - Each card has its own suppression settings */}
       <div style={{
         display: "grid",
         gap: "24px",
         gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))"
       }}>
         {platforms.map((platform) => {
-          // Get platform-specific integration data
           const platformIntegration = integrations[platform.id];
           
           return (
@@ -135,7 +129,7 @@ export default function Integrations() {
               )}
 
               {/* Platform Header */}
-              <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
                 <div style={{
                   width: "48px",
                   height: "48px",
@@ -158,13 +152,13 @@ export default function Integrations() {
                 </div>
               </div>
 
-              {/* Account Info */}
+              {/* Account Info - only show if connected */}
               {platform.connected && platform.accountInfo && (
                 <div style={{
                   backgroundColor: "#f0f9ff",
                   padding: "12px",
                   borderRadius: "8px",
-                  marginBottom: "16px",
+                  marginBottom: "24px",
                   fontSize: "14px",
                   color: "#0369a1"
                 }}>
@@ -172,16 +166,30 @@ export default function Integrations() {
                 </div>
               )}
 
-              {/* Individual Suppression Settings */}
-              <div style={{ marginBottom: "20px" }}>
-                <h4 style={{ fontSize: "14px", fontWeight: "600", color: "#202223", marginBottom: "8px" }}>
-                  Suppression Duration
+              {/* INDIVIDUAL SUPPRESSION SETTINGS - This is what was missing! */}
+              <div style={{ 
+                backgroundColor: "#f8fafc",
+                border: "1px solid #e2e8f0", 
+                borderRadius: "8px",
+                padding: "16px",
+                marginBottom: "24px"
+              }}>
+                <h4 style={{ 
+                  fontSize: "15px", 
+                  fontWeight: "600", 
+                  color: "#202223", 
+                  marginBottom: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}>
+                  ⏱️ Suppression Settings
                 </h4>
-                <p style={{ fontSize: "13px", color: "#6d7175", marginBottom: "12px" }}>
-                  How long should customers be excluded from ads after purchase?
+                <p style={{ fontSize: "13px", color: "#6d7175", marginBottom: "16px" }}>
+                  How long should customers be excluded from ads after making a purchase?
                 </p>
                 
-                <Form method="post" style={{ marginBottom: "12px" }}>
+                <Form method="post">
                   <input type="hidden" name="_action" value={`${platform.id}-suppression`} />
                   
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -190,15 +198,16 @@ export default function Integrations() {
                         display: "flex",
                         alignItems: "center",
                         gap: "6px",
-                        padding: "8px 12px",
-                        backgroundColor: days === platformIntegration.suppressionDays ? platform.color : "#f9fafb",
+                        padding: "10px 14px",
+                        backgroundColor: days === platformIntegration.suppressionDays ? platform.color : "#ffffff",
                         color: days === platformIntegration.suppressionDays ? "#ffffff" : "#374151",
                         borderRadius: "6px",
-                        border: "1px solid #e1e3e5",
+                        border: `2px solid ${days === platformIntegration.suppressionDays ? platform.color : "#e2e8f0"}`,
                         cursor: "pointer",
                         fontSize: "13px",
-                        fontWeight: "500",
-                        minWidth: "fit-content"
+                        fontWeight: "600",
+                        minWidth: "fit-content",
+                        transition: "all 0.2s ease"
                       }}>
                         <input
                           type="radio"
@@ -207,7 +216,6 @@ export default function Integrations() {
                           defaultChecked={days === platformIntegration.suppressionDays}
                           style={{ display: "none" }}
                           onChange={(e) => {
-                            // Auto-submit when changed
                             e.target.form?.submit();
                           }}
                         />
@@ -219,9 +227,10 @@ export default function Integrations() {
                             color: days === platformIntegration.suppressionDays ? platform.color : "#ffffff",
                             padding: "2px 6px",
                             borderRadius: "4px",
-                            marginLeft: "4px"
+                            marginLeft: "4px",
+                            fontWeight: "700"
                           }}>
-                            Rec
+                            REC
                           </span>
                         )}
                       </label>
@@ -235,7 +244,6 @@ export default function Integrations() {
                 <button
                   onClick={() => {
                     if (platform.connected) {
-                      // These would be real URLs once connected
                       const audienceUrls: Record<string, string> = {
                         meta: "https://business.facebook.com/adsmanager/audiences/",
                         google: "https://ads.google.com/aw/audiences/",
@@ -250,8 +258,8 @@ export default function Integrations() {
                     width: "100%",
                     backgroundColor: platform.connected ? "#f8fafc" : "#f1f5f9",
                     color: platform.connected ? "#374151" : "#94a3b8",
-                    padding: "10px 16px",
-                    borderRadius: "6px",
+                    padding: "12px 16px",
+                    borderRadius: "8px",
                     border: "1px solid #e2e8f0",
                     fontSize: "13px",
                     fontWeight: "500",
@@ -269,7 +277,7 @@ export default function Integrations() {
                 </button>
               </div>
 
-              {/* Action Button */}
+              {/* Connect/Manage Button */}
               <button
                 onClick={() => {
                   if (platform.connected) {
@@ -282,17 +290,18 @@ export default function Integrations() {
                   width: "100%",
                   backgroundColor: platform.connected ? "#f9fafb" : platform.color,
                   color: platform.connected ? "#374151" : "#ffffff",
-                  padding: "12px",
+                  padding: "14px",
                   borderRadius: "8px",
                   border: platform.connected ? "1px solid #e1e3e5" : "none",
                   fontSize: "14px",
-                  fontWeight: "500",
+                  fontWeight: "600",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "8px",
-                  marginBottom: "16px"
+                  marginBottom: "20px",
+                  transition: "all 0.2s ease"
                 }}
               >
                 {platform.connected ? (
@@ -309,7 +318,7 @@ export default function Integrations() {
               </button>
 
               {/* Features List */}
-              <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #e1e3e5" }}>
+              <div style={{ paddingTop: "16px", borderTop: "1px solid #e1e3e5" }}>
                 <h4 style={{ fontSize: "14px", fontWeight: "500", color: "#202223", marginBottom: "8px" }}>
                   What this enables:
                 </h4>
