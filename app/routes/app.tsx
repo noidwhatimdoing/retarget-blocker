@@ -2,6 +2,30 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import React, { useState } from 'react';
 
+interface LoaderData {
+  shop: string;
+  installed: boolean;
+}
+
+interface StatCardProps {
+  title: string;
+  value: string;
+  change: string;
+  icon: string;
+  color: string;
+}
+
+interface Integration {
+  connected: boolean;
+  suppressionDays?: number;
+}
+
+interface Integrations {
+  meta: Integration;
+  google: Integration;
+  tiktok: Integration;
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop") || "test-store-76000.myshopify.com";
@@ -11,7 +35,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function App() {
-  const { shop, installed } = useLoaderData<typeof loader>();
+  const { shop, installed } = useLoaderData<typeof loader>() as LoaderData;
   const [currentPage, setCurrentPage] = useState('home');
   const [integrations, setIntegrations] = useState({
   suppressionDays: 90,
@@ -28,7 +52,7 @@ interface StatCardProps {
   color: string;
 }
 
-  const StatCard = ({ title, value, change, icon, color }: StatCardProps) => (
+  const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon, color }) => (
   <div className="bg-white rounded-lg shadow-md p-6 border-l-4" style={{ borderLeftColor: color }}>
     <div className="flex items-center justify-between">
       <div>
@@ -40,7 +64,6 @@ interface StatCardProps {
     </div>
   </div>
 );
-
  const HomePage = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
