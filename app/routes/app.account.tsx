@@ -3,11 +3,10 @@ import { useLoaderData, Form } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { session } = await authenticate.admin(request);
-  
+  // Remove authentication temporarily - use mock data like other routes
   const userData = {
-    shop: session.shop,
-    email: "owner@" + session.shop,
+    shop: "test-store-76000.myshopify.com",
+    email: "owner@test-store-76000.myshopify.com",
     name: "Store Owner",
     subscription: {
       plan: "Growth Plan",
