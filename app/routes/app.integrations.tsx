@@ -21,25 +21,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
     },
   };
 
-  const suppressionWindow = 90;
-
-  return json({ integrations, suppressionWindow });
+  return json({ integrations });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const action = formData.get("_action");
 
-  if (action === "updateWindow") {
-    const days = parseInt(formData.get("days") as string);
-    console.log("Suppression window updated to:", days);
+  // Handle individual platform suppression updates
+  if (action?.toString().includes("-suppression")) {
+    const platform = action.toString().split("-")[0];
+    const days = parseInt(formData.get(`${platform}-suppression`) as string);
+    console.log(`${platform} suppression window updated to:`, days);
+    
+    // Here you'd update your database/storage
+    // await updatePlatformSuppression(platform, days);
   }
 
   return json({ success: true });
 }
 
 export default function Integrations() {
-  const { integrations, suppressionWindow } = useLoaderData<typeof loader>();
+  const { integrations } = useLoaderData<typeof loader>();
 
   const platforms = [
     {
@@ -92,82 +95,6 @@ export default function Integrations() {
         </p>
       </div>
 
-      {/* Suppression Window Settings */}
-      <div style={{
-        backgroundColor: "#ffffff",
-        borderRadius: "12px",
-        padding: "24px",
-        border: "1px solid #e1e3e5",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-        marginBottom: "32px"
-      }}>
-        <h2 style={{ fontSize: "18px", fontWeight: "600", color: "#202223", marginBottom: "16px" }}>
-          Suppression Settings
-        </h2>
-        <p style={{ fontSize: "14px", color: "#6d7175", marginBottom: "24px" }}>
-          How long should customers be suppressed from ads after making a purchase?
-        </p>
-        
-        <Form method="post" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <input type="hidden" name="_action" value="updateWindow" />
-          
-          <div style={{ display: "flex", gap: "12px" }}>
-            {[30, 60, 90, 120].map((days) => (
-              <label key={days} style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "12px 16px",
-                backgroundColor: suppressionWindow === days ? "#6366f1" : "#f9fafb",
-                color: suppressionWindow === days ? "#ffffff" : "#374151",
-                borderRadius: "8px",
-                border: "1px solid #e1e3e5",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "500"
-              }}>
-                <input
-                  type="radio"
-                  name="days"
-                  value={days}
-                  defaultChecked={suppressionWindow === days}
-                  style={{ display: "none" }}
-                />
-                {days} days
-                {days === 90 && (
-                  <span style={{ 
-                    fontSize: "12px", 
-                    backgroundColor: suppressionWindow === 90 ? "#ffffff" : "#6366f1",
-                    color: suppressionWindow === 90 ? "#6366f1" : "#ffffff",
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                    marginLeft: "4px"
-                  }}>
-                    Recommended
-                  </span>
-                )}
-              </label>
-            ))}
-          </div>
-          
-          <button
-            type="submit"
-            style={{
-              backgroundColor: "#6366f1",
-              color: "#ffffff",
-              padding: "12px 20px",
-              borderRadius: "8px",
-              border: "none",
-              fontSize: "14px",
-              fontWeight: "500",
-              cursor: "pointer"
-            }}
-          >
-            Update Settings
-          </button>
-        </Form>
-      </div>
-
       {/* Platforms Grid */}
       <div style={{
         display: "grid",
@@ -175,7 +102,7 @@ export default function Integrations() {
         gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))"
       }}>
         {platforms.map((platform) => {
-          // Type-safe way to get the integration data
+          // Get platform-specific integration data
           const platformIntegration = integrations[platform.id];
           
           return (
@@ -254,45 +181,53 @@ export default function Integrations() {
                   How long should customers be excluded from ads after purchase?
                 </p>
                 
-                <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
-                  {[30, 60, 90, 120].map((days) => (
-                    <label key={`${platform.id}-${days}`} style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      padding: "8px 12px",
-                      backgroundColor: days === platformIntegration.suppressionDays ? platform.color : "#f9fafb",
-                      color: days === platformIntegration.suppressionDays ? "#ffffff" : "#374151",
-                      borderRadius: "6px",
-                      border: "1px solid #e1e3e5",
-                      cursor: "pointer",
-                      fontSize: "13px",
-                      fontWeight: "500",
-                      minWidth: "fit-content"
-                    }}>
-                      <input
-                        type="radio"
-                        name={`${platform.id}-suppression`}
-                        value={days}
-                        defaultChecked={days === platformIntegration.suppressionDays}
-                        style={{ display: "none" }}
-                      />
-                      {days} days
-                      {days === 90 && (
-                        <span style={{ 
-                          fontSize: "10px", 
-                          backgroundColor: days === platformIntegration.suppressionDays ? "#ffffff" : platform.color,
-                          color: days === platformIntegration.suppressionDays ? platform.color : "#ffffff",
-                          padding: "2px 6px",
-                          borderRadius: "4px",
-                          marginLeft: "4px"
-                        }}>
-                          Rec
-                        </span>
-                      )}
-                    </label>
-                  ))}
-                </div>
+                <Form method="post" style={{ marginBottom: "12px" }}>
+                  <input type="hidden" name="_action" value={`${platform.id}-suppression`} />
+                  
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {[30, 60, 90, 120].map((days) => (
+                      <label key={`${platform.id}-${days}`} style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "8px 12px",
+                        backgroundColor: days === platformIntegration.suppressionDays ? platform.color : "#f9fafb",
+                        color: days === platformIntegration.suppressionDays ? "#ffffff" : "#374151",
+                        borderRadius: "6px",
+                        border: "1px solid #e1e3e5",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                        fontWeight: "500",
+                        minWidth: "fit-content"
+                      }}>
+                        <input
+                          type="radio"
+                          name={`${platform.id}-suppression`}
+                          value={days}
+                          defaultChecked={days === platformIntegration.suppressionDays}
+                          style={{ display: "none" }}
+                          onChange={(e) => {
+                            // Auto-submit when changed
+                            e.target.form?.submit();
+                          }}
+                        />
+                        {days} days
+                        {days === 90 && (
+                          <span style={{ 
+                            fontSize: "10px", 
+                            backgroundColor: days === platformIntegration.suppressionDays ? "#ffffff" : platform.color,
+                            color: days === platformIntegration.suppressionDays ? platform.color : "#ffffff",
+                            padding: "2px 6px",
+                            borderRadius: "4px",
+                            marginLeft: "4px"
+                          }}>
+                            Rec
+                          </span>
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                </Form>
               </div>
 
               {/* View Audience Button */}
